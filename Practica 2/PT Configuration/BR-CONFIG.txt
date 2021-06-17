@@ -1,0 +1,111 @@
+Building configuration...
+
+Current configuration : 1506 bytes
+!
+version 12.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+service password-encryption
+!
+hostname B-R
+!
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+username admin privilege 15 secret 5 $1$mERr$dRWIcik0T0FEcqEBOb5yv0
+!
+!
+crypto isakmp policy 1
+ encr aes 256
+ authentication pre-share
+ group 2
+!
+crypto isakmp key Vpnpass101 address 209.165.210.2
+!
+!
+!
+crypto ipsec transform-set S2-DMZ esp-aes esp-sha-hmac
+!
+crypto map S2-DMZ-MAP 10 ipsec-isakmp 
+ set peer 209.165.210.2
+ set transform-set S2-DMZ 
+ match address 101
+!
+!
+!
+!
+ip ssh version 2
+ip domain-name labredes.com
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface Tunnel1
+ ip address 50.50.50.1 255.255.255.0
+ mtu 1476
+ tunnel source Serial0/0/0
+ tunnel destination 209.165.211.2
+!
+!
+interface FastEthernet0/0
+ ip address 209.165.221.9 255.255.255.248
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/1
+ ip address 192.168.0.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface Serial0/0/0
+ ip address 209.165.212.2 255.255.255.252
+ crypto map S2-DMZ-MAP
+!
+interface Serial0/0/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 209.165.212.1 
+ip route 209.165.221.0 255.255.255.248 50.50.50.2 
+ip route 192.168.1.0 255.255.255.0 50.50.50.2 
+!
+ip flow-export version 9
+!
+!
+access-list 101 permit ip 209.165.221.8 0.0.0.7 209.165.0.0 0.0.0.255
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login local
+ transport input ssh
+!
+!
+!
+end

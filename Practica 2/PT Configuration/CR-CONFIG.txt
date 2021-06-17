@@ -1,0 +1,123 @@
+Building configuration...
+
+Current configuration : 2054 bytes
+!
+version 12.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname C-R
+!
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+!
+crypto isakmp policy 1
+ encr aes 256
+ authentication pre-share
+ group 2
+!
+crypto isakmp key Vpnpass101 address 209.165.211.2
+crypto isakmp key Vpnpass101 address 209.165.212.2
+!
+!
+!
+crypto ipsec transform-set CENTRAL-S2 esp-aes esp-sha-hmac
+crypto ipsec transform-set CENTRAL-A esp-aes esp-sha-hmac
+!
+crypto map CENTRAL-ALL-MAP 1 ipsec-isakmp 
+ set peer 209.165.212.2
+ set pfs group2
+ set transform-set CENTRAL-S2 
+ match address 101
+!
+crypto map CENTRAL-ALL-MAP 2 ipsec-isakmp 
+ set peer 209.165.211.2
+ set pfs group2
+ set transform-set CENTRAL-A 
+ match address 102
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ ip address 192.168.40.1 255.255.255.252
+ ip nat inside
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/1
+ ip address 209.165.0.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface Serial0/0/0
+ ip address 209.165.210.2 255.255.255.252
+ ip nat outside
+ crypto map CENTRAL-ALL-MAP
+!
+interface Serial0/0/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip nat pool NAT 209.165.210.2 209.165.210.2 netmask 255.255.255.252
+ip nat inside source list aclNat pool NAT overload
+ip classless
+ip route 0.0.0.0 0.0.0.0 209.165.210.1 
+ip route 192.168.10.0 255.255.255.0 192.168.40.2 
+ip route 192.168.20.0 255.255.255.0 192.168.40.2 
+ip route 192.168.30.0 255.255.255.0 192.168.40.2 
+!
+ip flow-export version 9
+!
+!
+ip access-list extended aclNat
+ permit ip 192.168.10.0 0.0.0.255 any
+ permit ip 192.168.20.0 0.0.0.255 any
+ deny ip 192.168.30.0 0.0.0.255 209.165.221.0 0.0.0.7
+ permit ip 192.168.30.0 0.0.0.255 any
+access-list 101 permit ip 209.165.0.0 0.0.0.255 209.165.221.8 0.0.0.7
+access-list 102 permit ip 192.168.30.0 0.0.0.255 209.165.221.0 0.0.0.7
+access-list 102 deny ip any any
+!
+no cdp run
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ no login
+ transport input none
+!
+!
+!
+end

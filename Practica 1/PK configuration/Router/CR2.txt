@@ -1,0 +1,137 @@
+Building configuration...
+
+Current configuration : 2170 bytes
+!
+version 12.4
+service timestamps log datetime msec
+service timestamps debug datetime msec
+no service password-encryption
+!
+hostname CR2
+!
+login on-failure log
+login on-success log
+!
+!
+enable secret level 2 5 $1$mERr$To56juWrpOcRiF84o8Uzl.
+enable secret 5 $1$mERr$ZzmFc/sKfBnxng95tbuFD/
+!
+!
+ip dhcp excluded-address 192.168.10.1 192.168.10.99
+ip dhcp excluded-address 192.168.10.121 192.168.10.254
+ip dhcp excluded-address 192.168.20.1 192.168.20.99
+ip dhcp excluded-address 192.168.20.121 192.168.20.254
+!
+ip dhcp pool VLAN_10_POOL
+ network 192.168.10.0 255.255.255.0
+ default-router 192.168.10.254
+ip dhcp pool VLAN_20_POOL
+ network 192.168.20.0 255.255.255.0
+ default-router 192.168.20.254
+!
+!
+aaa new-model
+!
+aaa authentication login default group radius local 
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+username admin secret 5 $1$mERr$dRWIcik0T0FEcqEBOb5yv0
+username supervisor privilege 2 secret 5 $1$mERr$To56juWrpOcRiF84o8Uzl.
+!
+!
+!
+!
+!
+!
+!
+!
+ip ssh version 2
+ip domain-name ccnasPractica.com
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.254 255.255.255.0
+!
+interface FastEthernet0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.254 255.255.255.0
+!
+interface FastEthernet0/0.30
+ encapsulation dot1Q 30
+ ip address 192.168.30.254 255.255.255.0
+!
+interface FastEthernet0/1
+ ip address 192.168.40.2 255.255.255.252
+ duplex auto
+ speed auto
+!
+interface Serial0/0/0
+ ip address 209.165.210.2 255.255.255.252
+ clock rate 2000000
+!
+interface Serial0/0/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 192.168.40.1 
+!
+ip flow-export version 9
+!
+!
+!
+no cdp run
+!
+!
+privilege exec level 2 reload
+!
+radius-server host 209.165.0.12 auth-port 1645 key RadiusPa55w0rd
+!
+!
+!
+logging trap debugging
+logging 209.165.0.13
+line con 0
+ password ccnas123con
+!
+line aux 0
+!
+line vty 0 4
+ password ccnas123con
+ transport input ssh
+!
+!
+ntp authentication-key 1 md5 08224F40080A544541051814 7
+ntp authenticate
+ntp trusted-key 1
+ntp server 209.165.0.13 key 1
+!
+end

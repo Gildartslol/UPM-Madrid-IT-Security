@@ -1,0 +1,170 @@
+Building configuration...
+[OK]
+CR#show runn
+CR#show running-config 
+Building configuration...
+
+Current configuration : 3412 bytes
+!
+version 12.4
+service timestamps log datetime msec
+service timestamps debug datetime msec
+no service password-encryption
+!
+hostname CR
+!
+login on-failure log
+login on-success log
+!
+!
+enable secret level 2 5 $1$mERr$To56juWrpOcRiF84o8Uzl.
+enable secret 5 $1$mERr$ZzmFc/sKfBnxng95tbuFD/
+!
+!
+!
+!
+!
+aaa new-model
+!
+aaa authentication login default group radius local 
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+username admin secret 5 $1$mERr$dRWIcik0T0FEcqEBOb5yv0
+username supervisor privilege 2 secret 5 $1$mERr$To56juWrpOcRiF84o8Uzl.
+!
+!
+!
+!
+!
+!
+!
+!
+ip ssh version 2
+ip domain-name ccnaspracticas.com
+!
+!
+spanning-tree mode pvst
+!
+class-map type inspect match-any UPDATES
+ match protocol http
+ match protocol dns
+class-map match-any RAD_LOG_INTERNET
+class-map type inspect match-any INTERNET-DMZ
+ match access-group name RAD_SYS_HTTP_DNS
+class-map type inspect match-all INTERNA-DMZ-CLASS
+ match access-group name INTERNA-DMZ
+!
+policy-map type inspect DMZ-TO-INTERNET
+ class type inspect UPDATES
+  inspect
+!
+policy-map type inspect INTERNET_TO_DMZ_POLIZY
+ class type inspect INTERNET-DMZ
+  inspect
+!
+policy-map type inspect INTERNA-DMZ-POLICY
+ class type inspect INTERNA-DMZ-CLASS
+  inspect
+!
+!
+!
+zone security DMZ
+zone security INTERNET
+zone security INTERNA
+zone-pair security DMZ-INTERNET source DMZ destination INTERNET
+ service-policy type inspect DMZ-TO-INTERNET
+zone-pair security INTERNET-DMZ source INTERNET destination DMZ
+ service-policy type inspect INTERNET_TO_DMZ_POLIZY
+zone-pair security INTERNA-DMZ source INTERNA destination DMZ
+ service-policy type inspect INTERNA-DMZ-POLICY
+!
+!
+interface FastEthernet0/0
+ ip address 192.168.40.1 255.255.255.252
+ zone-member security INTERNA
+ ip nat inside
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/1
+ ip address 209.165.0.1 255.255.255.0
+ zone-member security DMZ
+ duplex auto
+ speed auto
+!
+interface Serial0/0/0
+ ip address 209.165.210.2 255.255.255.252
+ zone-member security INTERNET
+ ip nat outside
+!
+interface Serial0/0/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+ip nat pool NatPoolCR 209.165.210.2 209.165.210.2 netmask 255.255.255.255
+ip nat inside source list 1 pool NatPoolCR overload
+ip classless
+ip route 0.0.0.0 0.0.0.0 209.165.210.1 
+ip route 192.168.10.0 255.255.255.0 192.168.40.2 
+ip route 192.168.20.0 255.255.255.0 192.168.40.2 
+ip route 192.168.30.0 255.255.255.0 192.168.40.2 
+!
+ip flow-export version 9
+!
+!
+access-list 1 permit 192.168.10.0 0.0.0.255
+access-list 1 permit 192.168.20.0 0.0.0.255
+access-list 2 permit 192.168.0.0 0.0.20.255
+ip access-list extended RAD_SYS_HTTP_DNS
+ permit ip any host 209.165.0.10
+ permit ip any host 209.165.0.11
+ permit ip 209.165.221.8 0.0.0.7 host 209.165.0.13
+ permit ip 209.165.221.0 0.0.0.7 host 209.165.0.13
+ permit ip 209.165.221.0 0.0.0.7 host 209.165.0.12
+ permit ip 209.165.221.8 0.0.0.7 host 209.165.0.12
+ip access-list extended INTERNA-DMZ
+ permit ip 192.168.40.0 0.0.0.255 host 209.165.0.12
+ permit ip 192.168.40.0 0.0.0.255 host 209.165.0.13
+!
+no cdp run
+!
+!
+privilege exec level 2 reload
+!
+radius-server host 209.165.0.12 auth-port 1645 key RadiusPa55w0rd
+!
+!
+!
+logging trap debugging
+logging 209.165.0.13
+line con 0
+ password ccnas123con
+!
+line aux 0
+!
+line vty 0 4
+ password ccnas123con
+ transport input ssh
+!
+!
+ntp authentication-key 1 md5 08224F40080A544541051814 7
+ntp authenticate
+ntp trusted-key 1
+ntp server 209.165.0.13 key 1
+!
+end
